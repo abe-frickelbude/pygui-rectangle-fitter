@@ -2,9 +2,9 @@
 name = "rectangle-fit"
 version = "0.1.0"
 description = ""
-authors = ["Ibragim Kuliev <ibragim.kuiev@dw.com>"]
+authors = ["Ibragim Kuliev <ibragim.kuiev@gmail.com>"]
 readme = "README.md"
-packages = [{include = "rectangle_fit"}]
+packages = [{ include = "rectangle_fit" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
