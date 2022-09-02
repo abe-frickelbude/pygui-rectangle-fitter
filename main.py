@@ -120,12 +120,12 @@ def main():
             graph.erase()
 
             if source_rect.is_defined() and target_rect.is_defined():
-                # for display
+                # for display (both rectangles fitted into the viewport)
                 fitted_source_rect = fit_to_viewport(source_rect, VIEWPORT_SIZE, MAX_SCALE)
                 draw_source_rect(fitted_source_rect, graph)
                 draw_target_rect(calculate_best_fit(fitted_source_rect, target_rect), graph)
 
-                # for actual dimension
+                # for outputting the actual dimensions
                 best_fit_rect = calculate_best_fit(source_rect, target_rect)
                 print(best_fit_rect)
 
