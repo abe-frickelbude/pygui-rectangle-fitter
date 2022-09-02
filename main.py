@@ -5,7 +5,7 @@ import PySimpleGUI as sg
 import Rectangle as rc
 
 
-def init_gui():
+def init_gui(viewport_size: (int, int)):
     sg.theme('dark grey 4')
 
     input_column = [
@@ -21,7 +21,7 @@ def init_gui():
     ]
 
     canvas_column = [
-        [sg.Graph(canvas_size=(1044, 596), graph_bottom_left=(5, 5), graph_top_right=(1044, 596),
+        [sg.Graph(canvas_size=viewport_size, graph_bottom_left=(0, 0), graph_top_right=viewport_size,
                   background_color='white', key='graph')],
     ]
 
@@ -73,14 +73,37 @@ def calculate_best_fit(source_rect: rc.Rectangle, target_rect: rc.Rectangle):
     out_width = round(scale_factor * target_rect.width)
     out_height = round(scale_factor * target_rect.height)
 
-    out_x = round(0.5 * (source_rect.width - out_width))
-    out_y = round(0.5 * (source_rect.height - out_height))
+    out_x = round(0.5 * (source_rect.width - out_width)) + source_rect.x  # don't forget the source origin
+    out_y = round(0.5 * (source_rect.height - out_height)) + source_rect.y
+
+    return rc.Rectangle(out_x, out_y, out_width, out_height)
+
+
+def fit_to_viewport(rect: rc.Rectangle, viewport_size: (float, float), max_scale: float):
+    ##
+    viewport_aspect_ratio = viewport_size[0] / viewport_size[1]
+
+    if rect.aspect_ratio() < viewport_aspect_ratio:
+        scale_factor = viewport_size[1] / rect.height
+    else:
+        scale_factor = viewport_size[0] / rect.width
+
+    out_width = round(max_scale * scale_factor * rect.width)
+    out_height = round(max_scale * scale_factor * rect.height)
+
+    out_x = round(0.5 * (viewport_size[0] - out_width))
+    out_y = round(0.5 * (viewport_size[1] - out_height))
 
     return rc.Rectangle(out_x, out_y, out_width, out_height)
 
 
 def main():
-    main_window, graph = init_gui()
+    #
+    VIEWPORT_SIZE = (500, 500)
+    MAX_SCALE = 0.9
+
+    main_window, graph = init_gui(VIEWPORT_SIZE)
+
     # event loop
     while True:
         try:
@@ -95,11 +118,15 @@ def main():
             target_rect = rc.Rectangle(0.0, 0.0, dimensions['target_width'], dimensions['target_height'])
 
             graph.erase()
-            draw_source_rect(source_rect, graph)
 
             if source_rect.is_defined() and target_rect.is_defined():
+                # for display
+                fitted_source_rect = fit_to_viewport(source_rect, VIEWPORT_SIZE, MAX_SCALE)
+                draw_source_rect(fitted_source_rect, graph)
+                draw_target_rect(calculate_best_fit(fitted_source_rect, target_rect), graph)
+
+                # for actual dimension
                 best_fit_rect = calculate_best_fit(source_rect, target_rect)
-                draw_target_rect(best_fit_rect, graph)
                 print(best_fit_rect)
 
         except Exception as ex:
