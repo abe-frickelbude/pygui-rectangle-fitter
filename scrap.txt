@@ -1,0 +1,17 @@
+
+ public static final Output fitRectangleInRectangle(Input inner, Input outer) {
+        Output output = new Output();
+        if ((inner == null) || (outer == null)) {
+            return null;
+        }
+        double innerAspectRatio = ((double) inner.width) / ((double) inner.height);
+        double outerAspectRatio = ((double) outer.width) / ((double) outer.height);
+        if (innerAspectRatio < outerAspectRatio) {
+            output.scale = ((double) outer.height) / ((double) inner.height);
+        } else {
+            output.scale = ((double) outer.width) / ((double) inner.width);
+        }
+        output.width  = (int) Math.round(output.scale * ((double) inner.width ));
+        output.height = (int) Math.round(output.scale * ((double) inner.height));
+        return output;
+    }

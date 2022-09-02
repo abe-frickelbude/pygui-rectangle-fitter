@@ -2,6 +2,8 @@ import logging
 
 import PySimpleGUI as sg
 
+import Rectangle as rc
+
 
 def init_gui():
     sg.theme('dark grey 4')
@@ -49,16 +51,32 @@ def read_inputs(event_values):
     }
 
 
-def draw_source_rect(rect: (int, int, int, int), graph: sg.Graph):
-    x1 = rect[0] + rect[2]
-    y1 = rect[1] + rect[3]
-    graph.DrawRectangle((rect[0], rect[1]), (x1, y1), line_color='blue', line_width=2)
+def draw_source_rect(rect: rc.Rectangle, graph: sg.Graph):
+    x1 = rect.x + rect.width
+    y1 = rect.y + rect.height
+    graph.DrawRectangle((rect.x, rect.y), (x1, y1), line_color='blue', line_width=2)
 
 
-def draw_target_rect(rect: (int, int, int, int), graph: sg.Graph):
-    x1 = rect[0] + rect[2]
-    y1 = rect[1] + rect[3]
-    graph.DrawRectangle((rect[0], rect[1]), (x1, y1), line_color='red', line_width=2)
+def draw_target_rect(rect: rc.Rectangle, graph: sg.Graph):
+    x1 = rect.x + rect.width
+    y1 = rect.y + rect.height
+    graph.DrawRectangle((rect.x, rect.y), (x1, y1), line_color='red', line_width=2)
+
+
+def calculate_best_fit(source_rect: rc.Rectangle, target_rect: rc.Rectangle):
+    ##
+    if target_rect.aspect_ratio() < source_rect.aspect_ratio():
+        scale_factor = source_rect.height / target_rect.height
+    else:
+        scale_factor = source_rect.width / target_rect.width
+
+    out_width = round(scale_factor * target_rect.width)
+    out_height = round(scale_factor * target_rect.height)
+
+    out_x = round(0.5 * (source_rect.width - out_width))
+    out_y = round(0.5 * (source_rect.height - out_height))
+
+    return rc.Rectangle(out_x, out_y, out_width, out_height)
 
 
 def main():
@@ -73,11 +91,16 @@ def main():
                 break
 
             dimensions = read_inputs(values)
-            # print(dimensions)
+            source_rect = rc.Rectangle(0.0, 0.0, dimensions['source_width'], dimensions['source_height'])
+            target_rect = rc.Rectangle(0.0, 0.0, dimensions['target_width'], dimensions['target_height'])
 
             graph.erase()
-            draw_source_rect((10, 10, dimensions['source_width'], dimensions['source_height']), graph)
-            draw_target_rect((10, 10, dimensions['target_width'], dimensions['target_height']), graph)
+            draw_source_rect(source_rect, graph)
+
+            if source_rect.is_defined() and target_rect.is_defined():
+                best_fit_rect = calculate_best_fit(source_rect, target_rect)
+                draw_target_rect(best_fit_rect, graph)
+                print(best_fit_rect)
 
         except Exception as ex:
             logging.exception(ex)
